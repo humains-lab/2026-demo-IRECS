@@ -5,19 +5,31 @@
 #    Knowledge and Discovery Systems (KDIS)
 #    University of Cordoba, Spain
 
+import threading
 from datetime import datetime
+
+_local = threading.local()
+
+def setLogFile(path):
+    _local.log_file = path
+
+def getLogFile():
+    return getattr(_local, 'log_file', 'log.txt')
 
 startTime = datetime.now()
 
 """Message for the log"""
 def log(msg, omitNewLine = False):
-    outputFile = "log.txt"
+    outputFile = getLogFile()
     f = open(outputFile, 'a+')
     
     if not omitNewLine:
-        f.write(str(datetime.now()) + ' | ' +  msg +'\n')
+        content = str(datetime.now()) + ' | ' +  msg +'\n'
+        f.write(content)
+        print(content, end='')
     else:         
         f.write(msg)
+        print(msg, end='')
     f.flush()
     f.close()
 

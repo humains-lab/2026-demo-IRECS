@@ -1,4 +1,5 @@
 from candidatePaper import CandidatePaper
+import os
 import pandas as pd
 import csv
 import numpy as np
@@ -28,52 +29,54 @@ class DatasetLoader():
 
     def loadfile(self, filename):
         self.filename = filename
-        with open("assets/" + str(self.filename), "r", encoding="UTF-8-sig") as csvfile:
-            content = [x for x in csv.reader(csvfile, delimiter=',')]
-        fields = ["Document Title", "Abstract", "Year", "PDF Link","doi","nCites","authorCount","aggregationType"]
-        header = content[0]
-        for field in fields:
-            try:
-                ind = header.index(field)
-                self.body[field] = [c[ind] for c in content[1:]]
-            except:
-                pass
-        try:
-            ind = header.index("label")
-            self.body["label"] = [c[ind] for c in content[1:]]
-        except:
-            self.hasLabel=False
-            self.body["label"] = ["unknown"] * (len(content) - 1)
-        try:
-            ind = header.index("doi")
-            self.body["doi"] = [c[ind] for c in content[1:]]
-        except:
-            self.body["doi"]=['undetermined']*(len(content) - 1)
-        try:
-            ind = header.index("aggregationType")
-            self.body["aggregationType"] = [c[ind] for c in content[1:]]
-        except:
-            self.body["aggregationType"]=['undetermined']*(len(content) - 1)
-        try:
-            ind = header.index("PDF Link")
-            self.body["PDF Link"] = [c[ind] for c in content[1:]]
-        except:
-            self.body["PDF Link"]=['undetermined']*(len(content) - 1)
-        try:
-            ind = header.index("nCites")
-            self.body["nCites"] = [c[ind] for c in content[1:]]
-        except:
-            self.body["nCites"]=[0]*(len(content) - 1)
-        try:
-            ind = header.index("authorCount")
-            self.body["authorCount"] = [c[ind] for c in content[1:]]
-        except:
-            self.body["authorCount"]=[0]*(len(content) - 1)
-        try:
-            ind = header.index("time")
-            self.body["time"] = [c[ind] for c in content[1:]]
-        except:
-            self.body["time"]=[0]*(len(content) - 1)
+        # Check if the file is an absolute path and exists, or relative to the root
+        if os.path.isabs(filename) and os.path.exists(filename):
+            full_path = filename
+        elif os.path.exists(filename):
+            full_path = filename
+        else:
+            full_path = "datasets/" + str(self.filename)
+            
+        with open(full_path, "r", encoding="UTF-8-sig") as csvfile:
+            headerLine = csvfile.readline()
+            # Determine delimiter based on the first line
+            delimiter = ',' if ',' in headerLine and (';' not in headerLine or headerLine.count(',') >= headerLine.count(';')) else ';'
+            csvfile.seek(0)
+            content = [x for x in csv.reader(csvfile, delimiter=delimiter)]
+        header = [h.strip() for h in content[0]]
+        header_lower = [h.lower() for h in header]
+
+        # Check if enrichment is needed (missing Title or Abstract but has DOI)
+        title_exists = any(h in ["document title", "title"] for h in header_lower)
+        abstract_exists = any(h in ["abstract", "description"] for h in header_lower)
+        doi_exists = any(h in ["doi"] for h in header_lower)
+        
+        if (not title_exists or not abstract_exists) and doi_exists:
+            from datasetCrawler import enrich_dataset
+            print(f"Dataset {full_path} is missing critical info. Triggering DOI enrichment...")
+            new_path = enrich_dataset(full_path)
+            if new_path != full_path:
+                return self.loadfile(new_path) # Reload with the enriched file
+
+        def get_col_data(possible_names, default_val=None):
+            for name in possible_names:
+                try:
+                    idx = header_lower.index(name.lower())
+                    return [c[idx] if idx < len(c) else default_val for c in content[1:]]
+                except ValueError:
+                    continue
+            return [default_val] * (len(content) - 1)
+
+        self.body["Document Title"] = get_col_data(["Document Title", "Title"])
+        self.body["Abstract"] = get_col_data(["Abstract", "Description"])
+        self.body["Year"] = get_col_data(["Year", "Date", "Cover Date"])
+        self.body["PDF Link"] = get_col_data(["PDF Link", "Link", "url"], "undetermined")
+        self.body["doi"] = get_col_data(["doi", "DOI"], "undetermined")
+        self.body["label"] = get_col_data(["label", "isCandidate", "Candidate"], "unknown")
+        self.body["nCites"] = get_col_data(["nCites", "citedby_count", "citations", "Cites"], 0)
+        self.body["authorCount"] = get_col_data(["authorCount", "author_count", "nAuthors", "authors"], 0)
+        self.body["aggregationType"] = get_col_data(["aggregationType", "type", "Aggregation Type"], "undetermined")
+        self.body["time"] = get_col_data(["time"], 0)
 
         self.papers = []
         
@@ -86,24 +89,38 @@ class DatasetLoader():
         return self.papers
     
     
-    def extractVocabulary(self):
-        ### Combine title and abstract for training ###########
-        contentAll = [paper.documentTitle + " " + paper.abstract for paper in self.papers]
+    def extractVocabulary(self, strategy="ALL", extra_terms=None):
+        if strategy == "POSITIVE":
+            content = [paper.documentTitle + " " + paper.abstract for paper in
+                      self.papers if paper.getIsCandidate()]
+        elif strategy == "NEGATIVE":
+            content = [paper.documentTitle + " " + paper.abstract for paper in
+                      self.papers if not paper.getIsCandidate()]
+        else: # Default: ALL
+            content = [paper.documentTitle + " " + paper.abstract for paper in self.papers]
 
-        contentPos = [paper.documentTitle + " " + paper.abstract for paper in
-                  self.papers if paper.getIsCandidate()]
+        self.voc = self.getRelevantWords(content)
         
-        contentNeg = [paper.documentTitle + " " + paper.abstract for paper in
-                  self.papers if not paper.getIsCandidate()]
+        # Add manually specified terms
+        if extra_terms:
+            if isinstance(extra_terms, str):
+                terms = [t.strip() for t in extra_terms.split(",") if t.strip()]
+            else:
+                terms = extra_terms
+            
+            # Use stemmer for manual terms to maintain consistency
+            from nltk.stem import PorterStemmer
+            porter = PorterStemmer()
+            stemmed_terms = [porter.stem(t.lower()) for t in terms]
+            
+            for term in stemmed_terms:
+                if term not in self.voc:
+                    self.voc.append(term)
 
-        # vocPos = self.getRelevantWords(contentPos)
-        vocNeg = self.getRelevantWords(contentNeg)
-        self.voc = self.getRelevantWords(contentAll)
+        # Apply vocabulary to terminalLogic
+        import terminalLogic
+        terminalLogic.VOCABULARY = self.voc
         
-        s = set(vocNeg)
-        # exclusiveVocPos = [x for x in vocPos if x not in s]
-        #print(vocPos)
-        #exclusiveVocPos = ["predict","fault","defect"]
         return self.voc
     
     def getRelevantWords(self, content):

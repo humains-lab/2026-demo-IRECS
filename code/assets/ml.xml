@@ -65,8 +65,8 @@
 		
 		<!-- Comparison -->
 		<non-terminal name="cmp">	
-			<!-- <production-rule>and;numCmp;textCmp</production-rule> -->
 			<production-rule>textCmp</production-rule>
+			<production-rule>numCmp</production-rule>
 		</non-terminal>
 
 		<non-terminal name="numCmp">

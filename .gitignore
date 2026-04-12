@@ -1,0 +1,25 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Node
+web-tool/frontend/node_modules/
+web-tool/frontend/.next/
+web-tool/frontend/out/
+web-tool/frontend/build/
+
+# IDEs
+.vscode/
+.idea/
+
+# IRECS Specific
+.scopus/
+web-tool/backend/datasets/*.csv
+!web-tool/backend/datasets/.gitkeep
+web-tool/backend/uploads/
+*.txt
+*.log
+.DS_Store

@@ -20,11 +20,13 @@ class Fold:
         return self.instances
 
 class CrossValidator:    
-    def __init__(self, nFolds, dataset, kFold = True):
+    def __init__(self, nFolds, dataset, kFold = True, progress_callback=None):
         self.nFolds = nFolds
         self.dataset = dataset
         self.folds = []
         self.kFold = kFold
+        self.fitnessHistories = [] # To aggregate from all folds
+        self.progress_callback = progress_callback
 
     def generateFolds(self):
         """Creates balanced nFolds folds"""
@@ -140,10 +142,11 @@ class CrossValidator:
         
 
 
-    def trainFold(self,config, scoringBasedSorting = False):
+    def trainFold(self,config, foldIdx, scoringBasedSorting = False, pause_event=None):
         """Starts the training process for a fold data and returns the selected rules after the training"""
-        engine = g3pEngine(config)
-        engine.start()
+        engine = g3pEngine(config, progress_callback=self.progress_callback, totalFolds=self.nFolds, foldIdx=foldIdx)
+        engine.start(pause_event=pause_event)
+        self.fitnessHistories.append(engine.fitnessHistory)
         #Remove duplicates
         engine.bestOverallIndividuals = list(set(engine.bestOverallIndividuals))
 
@@ -175,6 +178,10 @@ class CrossValidator:
                 rule.score = (Wpos*rule.confidence+Wneg*(1-rule.confidence))/(Wpos+Wneg)
             rules = sorted(rules, key = lambda i: (i.score), reverse=True)
 
+        log("Classifier rules:")
+        for idx, rule in enumerate(rules):
+            log(f"Rule {idx+1}: {str(rule).strip()} | Fitness: {rule.fitness:.4f} | Confidence: {rule.confidence:.4f}")
+
         [engine.saveRule(rule) for rule in rules]
         nPos = len(list(filter(lambda rule: rule.isPositiveCandidate(), rules)))
         log("|+rules=%d-rules=%d|" % (nPos,(len(rules)-nPos)))
@@ -200,9 +207,9 @@ class CrossValidator:
 
 class Classifier:
     """Creates folds and configures the classifier strategy"""
-    def __init__(self, dataset, nFolds, engineConfig):
+    def __init__(self, dataset, nFolds, engineConfig, progress_callback=None):
         self.dataset = dataset
-        self.crossValidator = CrossValidator(nFolds, dataset)
+        self.crossValidator = CrossValidator(nFolds, dataset, progress_callback=progress_callback)
         self.crossValidator.generateFolds()
         self.engineConfig = engineConfig
         self.rulesFolds = []
@@ -214,13 +221,21 @@ class Classifier:
         file.flush()
         file.close()
     
-    def train(self):
+    def train(self, pause_event=None):
         """Trains each fold individualy and appends resulting rules."""
         for i in range(len(self.crossValidator.folds)):
+            # Wait if pause event is set
+            if pause_event and pause_event.is_set():
+                log(f"Experiment PAUSED after fold {i}. Waiting for resume...")
+                while pause_event.is_set():
+                    import time
+                    time.sleep(1)
+                log(f"Experiment RESUMED. Starting fold {i+1}...")
+
             log('Fold '+str(i))
             trainData = self.crossValidator.getTrainSet(i)
             self.engineConfig.dataset = trainData
-            self.rulesFolds.append(self.crossValidator.trainFold(self.engineConfig, self.engineConfig.classificationStrategy == ClassificationStrategy.SCBA))
+            self.rulesFolds.append(self.crossValidator.trainFold(self.engineConfig, i, self.engineConfig.classificationStrategy == ClassificationStrategy.SCBA, pause_event=pause_event))
 
     def test(self):
         """Applies the testing phase of the classifier and takes all the measures for each fold."""
@@ -320,6 +335,7 @@ class Classifier:
         self.avgMeasures.append(precAcc)
         self.avgMeasures.append(recallAcc)
         self.avgMeasures.append(specificityAcc)
+        return self.avgMeasures, self.crossValidator.fitnessHistories
 
     def calculateX2Independence(self, individual, numInstances):
         supp = individual.support

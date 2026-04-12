@@ -5,7 +5,7 @@ from g3p import TerminalNode, NonTerminalNode
 def parse(filename):
     
     # Parse the file and get the starting point
-    root = ET.parse(filename).getroot()
+    root = ET.parse("code/" + str(filename)).getroot()
 
     # Parse the root symbol
     rootSymbol = root.find('root-symbol').text

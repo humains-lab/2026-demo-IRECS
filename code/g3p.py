@@ -42,19 +42,14 @@ class SyntaxTree(list):
         return new
 
     def __str__(self):
-        """Return the syntax tree in a human readable string."""
+        """Return the syntax tree in a human readable string using infix notation."""
         output = ""
-        # It prints the name of the nodes forming the syntax tree
         for elem in self.getTerminals():
             output = output + elem.__str__() + " "
-        return output  
+        return output.strip()
 
     def __repr__(self):
-        output = ""
-        # It prints the name of the nodes forming the syntax tree
-        for elem in self.getTerminals():
-            output = output + elem.__str__() + " "
-        return output   
+        return self.__str__()
     
     def getTerminals(self):
         terminals = []
@@ -95,7 +90,7 @@ class TerminalNode:
     def __init__(self, symbol, code, nOperators = 0, type = "string", minValue=0, maxValue=4):
         self.symbol = symbol
         self.code = code
-        self.nOperators = nOperators
+        self.nOperators = int(0 if nOperators is None else nOperators)
         self.type= type
         self.minValue = int(0 if minValue is None else minValue)
         self.maxValue = int(0 if maxValue is None else maxValue)

@@ -93,10 +93,7 @@ class g3pIndividual:
         for terminal in self.syntaxTree.getTerminals():
             s += str(terminal)
             s += " "
-        s += "\n"
-        #s += "Fitness: "
-        #s += str(self.getFitness())
-        return s
+        return s.strip()
     
     # def __eq__(self, other):
     #     return set(self.syntaxTree.getTerminals()) == set(other.syntaxTree.getTerminals())
@@ -145,8 +142,11 @@ class g3pEngine:
     individual created (currently, a list of CandidatePapers) and a config object
     for the engine with population size, max. generations, replacement strategy
     and probabilities although default values are given."""
-    def __init__(self, config: g3pEngineConfiguration):
+    def __init__(self, config: g3pEngineConfiguration, progress_callback=None, totalFolds=1, foldIdx=0):
         self.config = config
+        self.progress_callback = progress_callback
+        self.totalFolds = totalFolds
+        self.foldIdx = foldIdx
         self.populationSize = config.getPopulationSize()
         self.maxGenerations = config.getMaxGenerations()
         self.crossProb = config.getCrossProbability()
@@ -164,6 +164,7 @@ class g3pEngine:
         self.avgFitnessThreshold = 0.9
         self.minimumNegativeIndividuals = 5
         self.positiveWeight = config.positiveWeight
+        self.fitnessHistory = [] # To capture fitness over generations
         
         #Parse grammar
         (rootSymbol, terminals, nonTerminals) = parse(config.grammarFilePath)
@@ -190,7 +191,7 @@ class g3pEngine:
         for i in range(self.populationSize):
             self.individuals.append(g3pIndividual(self.grammar.createSyntaxTree()))
 
-    def start(self):
+    def start(self, pause_event=None):
         """Launches the whole genetic engine with the established configuration.
         Stops when maxGeneration is reached."""
         self.generateIndividuals()
@@ -204,6 +205,11 @@ class g3pEngine:
 
         #print('Generation... ',end=' - ')
         while self.currentGen < self.maxGenerations: # and not self.avgFitnessConverge:
+            # Check for pause
+            if pause_event and pause_event.is_set():
+                import time
+                while pause_event.is_set():
+                    time.sleep(0.5)
             #print(str(self.currentGen), end=',')
             #initial selection and crossover
             self.selectionPhase()
@@ -229,6 +235,12 @@ class g3pEngine:
             self.currentGen += 1
             if self.currentGen % 2 == 0:
                 log(f'Current gen.: {self.currentGen} & AVG fitness: {self.averageFitness}')
+            
+            if self.progress_callback:
+                # Calculate overall progress: (folds done + current fold progress) / total folds
+                fold_progress = self.currentGen / self.maxGenerations
+                overall_progress = (self.foldIdx + fold_progress) / self.totalFolds
+                self.progress_callback(overall_progress * 100)
 
     def sortIndividuals(self, individuals):
         """Sorts individuals by fitness descending."""
@@ -250,6 +262,7 @@ class g3pEngine:
         if len(fitnesses) != 0:
             self.averageFitness = reduce(lambda a, b: a + b, fitnesses) / len(fitnesses)
             self.avgFitnessConverge = self.averageFitness >= self.avgFitnessThreshold 
+            self.fitnessHistory.append(self.averageFitness)
 
     def fitness(self, individual: g3pIndividual):
         """Evaluates a g3pIndividual and returns the individual with its support and confidence."""
@@ -366,8 +379,8 @@ class g3pEngine:
         """Stores a rule (based on its fitness) in a text file if its not already in"""
         file = open(self.config.bestRulesFilePath, 'a')
         #if (str(rule)) not in fileContent:
-        file.write(str(rule)+"Support: "+str(rule.support)+" Confidence: "+str(rule.confidence)+" Fitness: "+str(rule.fitness)
-                   +" AntcCovered: "+str(rule.antcCovered)+" InstancesCovered: "+str(rule.instancesCovered)+"\n")
+        file.write(str(rule).strip() + " | Support: " + str(rule.support) + " | Confidence: " + str(rule.confidence) + " | Fitness: " + str(rule.fitness)
+                   + " | AntcCovered: " + str(rule.antcCovered) + " | InstancesCovered: " + str(rule.instancesCovered) + "\n")
         # reversed = rule.reverseRule()
         
         # reversed = self.coverAll(reversed)
