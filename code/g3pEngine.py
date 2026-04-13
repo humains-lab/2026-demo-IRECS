@@ -95,8 +95,35 @@ class g3pIndividual:
             s += " "
         return s.strip()
     
-    # def __eq__(self, other):
-    #     return set(self.syntaxTree.getTerminals()) == set(other.syntaxTree.getTerminals())
+    def __eq__(self, other):
+        if not isinstance(other, g3pIndividual):
+            return False
+        # Compare based on the full syntax tree symbols sequence
+        if len(self.syntaxTree) != len(other.syntaxTree):
+            return False
+        for s, o in zip(self.syntaxTree, other.syntaxTree):
+            # Handle numpy arrays specifically for equality comparison
+            if isinstance(s.symbol, np.ndarray) or isinstance(o.symbol, np.ndarray):
+                if not np.array_equal(s.symbol, o.symbol):
+                    return False
+            elif s.symbol != o.symbol:
+                return False
+        return True
+
+    def __hash__(self):
+        # Use a tuple of symbols for hashing. Convert unhashable ndarrays to tuples.
+        symbols = []
+        for s in self.syntaxTree:
+            if isinstance(s.symbol, np.ndarray):
+                symbols.append(tuple(s.symbol))
+            else:
+                symbols.append(s.symbol)
+        return hash(tuple(symbols))
+
+    def __lt__(self, other):
+        # Deterministic sorting for reproducibility when hashes/identities are tied or for list(set())
+        # We use the string representation as a stable tie-breaker
+        return str(self) < str(other)
 
 class g3pEngineConfiguration:
     def __init__(self, dataset, grammarFilePath,maxGenerations = 100, populationSize = 1000, crossProb = 0.9, mutationProb = 0.1,
@@ -298,7 +325,7 @@ class g3pEngine:
         """
         #select randomly N (population size) individuals of current generation
         for i in range(0, self.populationSize):
-            index = np.random.randint(0,self.populationSize-1)
+            index = np.random.randint(0,self.populationSize)
             ind1 = self.individuals[index]
             # while self.individuals[index] in self.parentsSelected:
             #     index = random.randrange(0,self.populationSize-1)
@@ -391,6 +418,8 @@ class g3pEngine:
 
     def removeClones(self):
         self.individuals = list(set(self.individuals))
+        # Deterministic sort after set conversion to ensure reproducible results
+        self.individuals.sort() 
         if len(self.individuals) <  self.populationSize:
            nNewIndividuals = self.populationSize-len(self.individuals)
            for i in range(nNewIndividuals):

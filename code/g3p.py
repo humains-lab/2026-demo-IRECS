@@ -15,7 +15,7 @@ Program Tree and the functions to evaluate it.
 import copy
 import random
 import numpy as np 
-random.seed(1)
+# random.seed(1)  # Removed to avoid overriding user-specified seeds
 import terminalLogic
 from inspect import isclass, isfunction
 
@@ -468,7 +468,7 @@ def cxSubtree(ind1, ind2):
             nonTerms.append(i)
 
     # Select one of the non-terminals
-    point1 = nonTerms[np.random.randint(0, len(nonTerms)-1)]
+    point1 = nonTerms[np.random.randint(0, len(nonTerms))]
 
     # Look for the same non-terminal in the other individual
     point2 = -1
@@ -522,7 +522,7 @@ def mutSubtree(ind, schema):
         if isinstance(ind[i], NonTerminalNode):
             nonTerms.append(i)
 
-    p0_branchStart = nonTerms[np.random.randint(0, len(nonTerms)-1)]
+    p0_branchStart = nonTerms[np.random.randint(0, len(nonTerms))]
     subtreeToMutate = ind.searchSubtree(p0_branchStart)
     p0_branchEnd = subtreeToMutate.stop
 

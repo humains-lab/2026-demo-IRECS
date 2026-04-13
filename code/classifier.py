@@ -109,7 +109,8 @@ class CrossValidator:
                 
                 Caux = self.reduceCoverageCounters(Caux, coversToRemove)
                 C = self.reduceCoverageCounters(C, coversToRemove)
-                D = list(set(D).difference(set(instancesToRemove)))
+                set_to_remove = set(instancesToRemove)
+                D = [inst for inst in D if inst not in set_to_remove]
                 instancesToRemove.clear()
                 coversToRemove.clear()
             else:
@@ -147,8 +148,8 @@ class CrossValidator:
         engine = g3pEngine(config, progress_callback=self.progress_callback, totalFolds=self.nFolds, foldIdx=foldIdx)
         engine.start(pause_event=pause_event)
         self.fitnessHistories.append(engine.fitnessHistory)
-        #Remove duplicates
-        engine.bestOverallIndividuals = list(set(engine.bestOverallIndividuals))
+        #Remove duplicates and sort for reproducibility
+        engine.bestOverallIndividuals = sorted(list(set(engine.bestOverallIndividuals)))
 
         rules = []
         rulesRest = []
@@ -162,7 +163,7 @@ class CrossValidator:
         ######
         #rulesRest = engine.bestOverallIndividuals
         rulesRest.extend(rules)
-        rules = list(set(rulesRest))
+        rules = sorted(list(set(rulesRest)))
 
         #Now sort from more specific to less
         if not scoringBasedSorting:
