@@ -72,7 +72,7 @@ class DatasetLoader():
         self.body["Year"] = get_col_data(["Year", "Date", "Cover Date"])
         self.body["PDF Link"] = get_col_data(["PDF Link", "Link", "url"], "undetermined")
         self.body["doi"] = get_col_data(["doi", "DOI"], "undetermined")
-        self.body["label"] = get_col_data(["label", "isCandidate", "Candidate"], "unknown")
+        self.body["label"] = get_col_data(["label", "isCandidate", "Candidate","label_included"], "unknown")
         self.body["nCites"] = get_col_data(["nCites", "citedby_count", "citations", "Cites"], 0)
         self.body["authorCount"] = get_col_data(["authorCount", "author_count", "nAuthors", "authors"], 0)
         self.body["aggregationType"] = get_col_data(["aggregationType", "type", "Aggregation Type"], "undetermined")

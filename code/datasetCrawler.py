@@ -123,7 +123,7 @@ def enrich_dataset(filepath, scopus_api_key=None, progress_callback=None):
         "title": next((c for c in df.columns if c.lower() in ["document title", "title"]), None),
         "abstract": next((c for c in df.columns if c.lower() in ["abstract", "description"]), None),
         "doi": next((c for c in df.columns if c.lower() in ["doi"]), None),
-        "label": next((c for c in df.columns if c.lower() in ["label", "iscandidate", "candidate"]), None)
+        "label": next((c for c in df.columns if c.lower() in ["label", "iscandidate", "candidate", "label_included"]), None)
     }
 
     if not cols_mapping["doi"]:

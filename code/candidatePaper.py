@@ -15,7 +15,8 @@ class CandidatePaper:
 
     """Compares with 'yes' the value of the isCandidate column of the dataset"""
     def getIsCandidate(self):
-        return self.isCandidate == 'yes' or self.isCandidate == '1'
+        val = str(self.isCandidate).lower().strip()
+        return val in ['yes', '1', 'true', 'y']
     
     def __str__(self):
         return str(self.doi) + ' -> ' + str(self.isCandidate)
