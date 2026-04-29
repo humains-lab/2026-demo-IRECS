@@ -216,6 +216,7 @@ class Classifier:
         self.rulesFolds = []
         self.measures = []
         self.avgMeasures = []
+        self.selectedRelevantPapers = []
         self.classifierStrategy = self.getClassificationStrategy()
         file = open(self.engineConfig.bestRulesFilePath, 'a')
         file.write('------\nNew experiment rules\n')
@@ -242,6 +243,24 @@ class Classifier:
         """Applies the testing phase of the classifier and takes all the measures for each fold."""
         #(acc, pre, rec, spe, f1, tp, fp, tn, fn)
         self.measures = [[0 for x in range(12)] for y in range(len(self.crossValidator.folds))] 
+        selected_papers_map = {}
+
+        def paper_key(paper):
+            doi = str(getattr(paper, 'doi', '')).strip().lower()
+            if doi not in ['', 'nan', 'n/a', 'undetermined', '-1', '[]']:
+                return f"doi:{doi}"
+            title = str(getattr(paper, 'documentTitle', '')).strip().lower()
+            year = str(getattr(paper, 'year', '')).strip()
+            return f"title:{title}|year:{year}"
+
+        def paper_to_dict(paper):
+            return {
+                "title": str(getattr(paper, 'documentTitle', '')),
+                "year": str(getattr(paper, 'year', '')),
+                "doi": str(getattr(paper, 'doi', '')),
+                "pdfLink": str(getattr(paper, 'pdfLink', '')),
+            }
+
         avgAcc = 0
         precAcc = 0
         recallAcc = 0
@@ -257,21 +276,24 @@ class Classifier:
             predictions = []
             testData = self.crossValidator.getTestSet(i)
             for instance in testData:
-                groundTruthValues.append(instance.getIsCandidate())
-                if instance.getIsCandidate():
-                    if self.classifierStrategy(self.rulesFolds[i], instance, len(testData)):
+                ground_truth = instance.getIsCandidate()
+                predicted_relevant = bool(self.classifierStrategy(self.rulesFolds[i], instance, len(testData)))
+                groundTruthValues.append(ground_truth)
+                predictions.append(predicted_relevant)
+
+                if predicted_relevant:
+                    selected_papers_map[paper_key(instance)] = paper_to_dict(instance)
+
+                if ground_truth:
+                    if predicted_relevant:
                         tp += 1
-                        predictions.append(True)
                     else:
                         fn += 1
-                        predictions.append(False)
                 else:
-                    if self.classifierStrategy(self.rulesFolds[i], instance, len(testData)):
+                    if predicted_relevant:
                         fp += 1
-                        predictions.append(True)
                     else:
                         tn += 1
-                        predictions.append(False)
             try: 
                 precisionAux = tp/(tp+fp)
                 recallAux = tp/(tp+fn)
@@ -336,7 +358,8 @@ class Classifier:
         self.avgMeasures.append(precAcc)
         self.avgMeasures.append(recallAcc)
         self.avgMeasures.append(specificityAcc)
-        return self.avgMeasures, self.crossValidator.fitnessHistories
+        self.selectedRelevantPapers = list(selected_papers_map.values())
+        return self.avgMeasures, self.crossValidator.fitnessHistories, self.selectedRelevantPapers
 
     def calculateX2Independence(self, individual, numInstances):
         supp = individual.support

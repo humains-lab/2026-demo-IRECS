@@ -72,6 +72,7 @@ class JobManager:
             "logs": [],
             "results": None,
             "best_rules": None,
+            "selected_papers": [],
             "fitness_history": [],
             "config": config,
             "start_time": None,
@@ -92,6 +93,37 @@ class JobManager:
 
         try:
             config = job["config"]
+
+            # Resolve grammar path independently of the process cwd.
+            code_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../code'))
+
+            def resolve_grammar_path(raw_path: str) -> str:
+                if not raw_path:
+                    raw_path = "assets/ml.xml"
+
+                # Absolute path can be used directly.
+                if os.path.isabs(raw_path):
+                    return raw_path
+
+                # Common relative forms accepted from API/UI.
+                candidates = [
+                    raw_path,
+                    os.path.join(code_dir, raw_path),
+                ]
+
+                # Handle inputs like "code/assets/ml.xml".
+                code_prefix = f"code{os.sep}"
+                if raw_path.startswith("code/") or raw_path.startswith(code_prefix):
+                    trimmed = raw_path.split("code/", 1)[-1] if "code/" in raw_path else raw_path[len(code_prefix):]
+                    candidates.append(os.path.join(code_dir, trimmed))
+
+                for candidate in candidates:
+                    candidate_abs = os.path.abspath(candidate)
+                    if os.path.exists(candidate_abs):
+                        return candidate_abs
+
+                # Fallback to code directory to keep previous default behavior predictable.
+                return os.path.abspath(os.path.join(code_dir, raw_path))
             
             # Generate unique filenames for this job
             log_file = f"log_{job_id}.txt"
@@ -100,7 +132,7 @@ class JobManager:
             # Extract parameters
             params = {
                 "datasetFilePath": config.get("datasetFilePath"),
-                "grammarFilePath": config.get("grammarFilePath", "assets/ml.xml"),
+                "grammarFilePath": resolve_grammar_path(config.get("grammarFilePath", "assets/ml.xml")),
                 "nFolds": int(config.get("nFolds", 2)),
                 "maxGenerations": int(config.get("maxGenerations", 10)),
                 "populationSize": int(config.get("populationSize", 30)),
@@ -129,8 +161,9 @@ class JobManager:
                         pass
 
             # Run experiment
-            results, histories = launchExperiment(**params, progress_callback=update_progress)
+            results, histories, selected_papers = launchExperiment(**params, progress_callback=update_progress)
             job["results"] = results
+            job["selected_papers"] = selected_papers
             job["progress"] = 100
             job["fitness_history"] = histories
             job["status"] = "completed"

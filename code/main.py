@@ -63,7 +63,7 @@ def launchExperiment(datasetFilePath,grammarFilePath,nFolds,maxGenerations,popul
     log(f"Testing done. {time.perf_counter() - step_start:.3f}s.")
     log(f"Experiment End. {time.perf_counter() - experiment_start:.3f}s.")
     log("-------------")
-    return classifier.avgMeasures, classifier.crossValidator.fitnessHistories
+    return classifier.avgMeasures, classifier.crossValidator.fitnessHistories, classifier.selectedRelevantPapers
 
 def statistics(resultsPath='results.txt', nSeeds=1, nExperiments=1):
     if nSeeds <= 0 or nExperiments <= 0:

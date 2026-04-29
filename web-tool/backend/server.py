@@ -228,7 +228,8 @@ async def get_results(job_id: str):
         "results": status["results"],
         "best_rules": status["best_rules"],
         "logs": status["logs"],
-        "fitness_history": status["fitness_history"]
+        "fitness_history": status["fitness_history"],
+        "selected_papers": status.get("selected_papers", [])
     }
 
 if __name__ == "__main__":

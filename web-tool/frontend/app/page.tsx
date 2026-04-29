@@ -629,6 +629,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               ) : (
+                <>
                 <div className="rules-section glass-card">
                   <div className="section-header">
                     <h3>Evolved Rules</h3>
@@ -701,6 +702,47 @@ export default function Dashboard() {
                     ) : "No rules found yet."}
                   </pre>
                 </div>
+
+                <div className="papers-section glass-card mt-6">
+                  <div className="section-header">
+                    <h3>Relevant Papers Selected</h3>
+                    <span className="papers-count">{jobStatus?.selected_papers?.length || 0} unique</span>
+                  </div>
+
+                  {!jobStatus?.selected_papers || jobStatus.selected_papers.length === 0 ? (
+                    <p className="text-secondary text-sm">No relevant papers selected for this execution.</p>
+                  ) : (
+                    <div className="papers-table-wrapper">
+                      <table className="papers-table">
+                        <thead>
+                          <tr>
+                            <th>Title</th>
+                            <th>Year</th>
+                            <th>DOI</th>
+                            <th>Link</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {jobStatus.selected_papers.map((paper: any, idx: number) => (
+                            <tr key={`${paper.doi || paper.title}-${idx}`}>
+                              <td>{paper.title || '-'}</td>
+                              <td>{paper.year || '-'}</td>
+                              <td>{paper.doi || '-'}</td>
+                              <td>
+                                {paper.pdfLink && paper.pdfLink !== 'undetermined' && paper.pdfLink !== 'nan' ? (
+                                  <a href={paper.pdfLink} target="_blank" rel="noreferrer" className="paper-link">Open</a>
+                                ) : (
+                                  <span className="text-secondary">-</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+                </>
               )}
             </div>
           )}
@@ -1095,6 +1137,64 @@ export default function Dashboard() {
 
         .rules-section {
           padding: 24px;
+        }
+
+        .papers-section {
+          padding: 24px;
+        }
+
+        .papers-count {
+          font-size: 0.8rem;
+          color: var(--accent-primary);
+          font-weight: 700;
+          background: #dbeafe;
+          border: 1px solid #bfdbfe;
+          border-radius: 999px;
+          padding: 6px 10px;
+        }
+
+        .papers-table-wrapper {
+          overflow-x: auto;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-sm);
+          background: #ffffff;
+        }
+
+        .papers-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.85rem;
+        }
+
+        .papers-table th,
+        .papers-table td {
+          text-align: left;
+          padding: 10px 12px;
+          border-bottom: 1px solid #e2e8f0;
+          vertical-align: top;
+        }
+
+        .papers-table th {
+          background: #f8fafc;
+          color: var(--text-secondary);
+          font-weight: 700;
+          font-size: 0.78rem;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .papers-table tr:last-child td {
+          border-bottom: none;
+        }
+
+        .paper-link {
+          color: var(--accent-primary);
+          text-decoration: none;
+          font-weight: 600;
+        }
+
+        .paper-link:hover {
+          text-decoration: underline;
         }
 
         .section-header {

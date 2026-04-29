@@ -1,11 +1,18 @@
-
 import xml.etree.ElementTree as ET
+import os
 from g3p import TerminalNode, NonTerminalNode
 
 def parse(filename):
-    
     # Parse the file and get the starting point
-    root = ET.parse("code/" + str(filename)).getroot()
+    filename = str(filename)
+    code_dir = os.path.abspath(os.path.dirname(__file__))
+
+    if os.path.isabs(filename):
+        grammar_path = filename
+    else:
+        grammar_path = os.path.abspath(os.path.join(code_dir, filename))
+
+    root = ET.parse(grammar_path).getroot()
 
     # Parse the root symbol
     rootSymbol = root.find('root-symbol').text
