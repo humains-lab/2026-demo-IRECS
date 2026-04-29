@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
 :root {
-  --bg-dark: #0a0a0c;
-  --bg-card: #141417;
-  --bg-sidebar: #0f1012;
-  --border: rgba(255, 255, 255, 0.08);
-  --text-primary: #ffffff;
-  --text-secondary: #9499a1;
-  --accent-primary: #6366f1;
-  --accent-secondary: #8b5cf6;
+  --bg-dark: #f2f5f9;
+  --bg-card: #ffffff;
+  --bg-sidebar: #f8fafc;
+  --border: rgba(15, 23, 42, 0.12);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --accent-primary: #2563eb;
+  --accent-secondary: #0ea5a4;
   --success: #10b981;
   --error: #ef4444;
   --warning: #f59e0b;
-  --glass: rgba(255, 255, 255, 0.03);
-  --glass-hover: rgba(255, 255, 255, 0.06);
+  --glass: rgba(255, 255, 255, 0.92);
+  --glass-hover: rgba(241, 245, 249, 0.98);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -98,7 +98,7 @@ input, select, textarea {
 
 .glass-card:hover {
   border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 .btn-primary {
@@ -135,5 +135,5 @@ input, select, textarea {
 
 .btn-secondary:hover {
   background: var(--glass-hover);
-  border-color: var(--text-secondary);
+  border-color: rgba(37, 99, 235, 0.35);
 }

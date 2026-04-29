@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { 
   Play, 
   Settings, 
@@ -257,21 +258,21 @@ export default function Dashboard() {
       {/* Enrichment Progress Overlay */}
       {enrichmentTask && (
         <div className="fixed bottom-8 right-8 z-50 w-96 animate-in slide-in-from-right-8 duration-300">
-          <div className="bg-[#1e1e1e]/95 backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-2xl shadow-black/50">
+          <div className="bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 shadow-2xl shadow-slate-300/40">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-accent-primary/20 flex items-center justify-center">
                   <Database className="text-accent-primary animate-pulse" size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Enriching Dataset</h3>
+                  <h3 className="text-sm font-bold text-slate-900">Enriching Dataset</h3>
                   <p className="text-[10px] text-secondary/50 truncate w-40">{enrichmentTask.filename}</p>
                 </div>
               </div>
               <span className="text-xs font-mono font-bold text-accent-primary">{enrichmentTask.progress}%</span>
             </div>
             
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden mb-3">
+            <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden mb-3">
               <div 
                 className="h-full bg-gradient-to-r from-accent-primary to-accent-primary/50 transition-all duration-500 ease-out"
                 style={{ width: `${enrichmentTask.progress}%` }}
@@ -296,7 +297,14 @@ export default function Dashboard() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="logo">
-            <div className="logo-icon">IR</div>
+            <Image
+              src="/logo_hu_7a1e9deccce3728a.png"
+              alt="IRECS logo"
+              width={40}
+              height={40}
+              className="logo-image"
+              priority
+            />
             <h1>IRECS <span>Lab</span></h1>
           </div>
         </div>
@@ -392,7 +400,7 @@ export default function Dashboard() {
                       <span className="text-xs font-semibold uppercase tracking-wider text-secondary">Evolution Progress</span>
                       <button 
                         onClick={togglePause}
-                        className="p-1 hover:bg-white/10 rounded-full transition-colors text-accent-primary"
+                        className="p-1 hover:bg-slate-100 rounded-full transition-colors text-accent-primary"
                         title="Pause Experiment"
                       >
                         <Pause size={16} />
@@ -426,7 +434,7 @@ export default function Dashboard() {
                       <button 
                         onClick={updateAndResume}
                         disabled={isUpdating}
-                        className="px-4 py-2 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-all text-xs flex items-center gap-2"
+                        className="px-4 py-2 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 transition-all text-xs flex items-center gap-2"
                       >
                         {isUpdating ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
                         Save & Resume
@@ -626,19 +634,19 @@ export default function Dashboard() {
                     <h3>Evolved Rules</h3>
                     
                     <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-4 bg-white/5 px-5 py-2.5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                      <div className="flex items-center gap-4 bg-slate-100 px-5 py-2.5 rounded-2xl border border-slate-200 backdrop-blur-sm">
                         <span className={`text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${!showAdvancedRules ? 'text-accent-primary scale-110' : 'text-secondary/40'}`}>Simple</span>
                         
                         <button 
                           onClick={(e) => { e.preventDefault(); setShowAdvancedRules(!showAdvancedRules); }}
-                          className={`relative w-14 h-7 rounded-full transition-all duration-500 shadow-inner ${showAdvancedRules ? 'bg-accent-primary/30 border-accent-primary/50' : 'bg-white/20 border-white/20'}`}
+                          className={`relative w-14 h-7 rounded-full transition-all duration-500 shadow-inner ${showAdvancedRules ? 'bg-accent-primary/30 border-accent-primary/50' : 'bg-slate-300 border-slate-300'}`}
                           style={{ border: '2px solid', cursor: 'pointer' }}
                         >
                           <div 
                             className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-500 shadow-[0_0_15px_rgba(255,255,255,0.4)]`} 
                             style={{ 
                               left: showAdvancedRules ? 'calc(100% - 1.5rem)' : '0.125rem',
-                              backgroundColor: 'white',
+                              backgroundColor: '#ffffff',
                               zIndex: 10
                             }}
                           />
@@ -657,7 +665,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="rules-toolbar flex items-center gap-4 px-6 py-3 bg-white/[0.02] border-b border-white/10">
+                  <div className="rules-toolbar flex items-center gap-4 px-6 py-3 bg-slate-50 border-b border-slate-200">
                     <div className="flex items-center gap-3">
                       <input 
                         type="checkbox" 
@@ -666,7 +674,7 @@ export default function Dashboard() {
                         onChange={() => setFilterPositiveOnly(!filterPositiveOnly)}
                         className="accent-accent-primary w-4 h-4 cursor-pointer"
                       />
-                      <label htmlFor="positive-filter" className="text-xs font-semibold text-secondary/80 cursor-pointer hover:text-white transition-colors select-none">
+                      <label htmlFor="positive-filter" className="text-xs font-semibold text-secondary/80 cursor-pointer hover:text-slate-900 transition-colors select-none">
                         Filter by: <span className="text-accent-primary">Positive Candidate Rules only</span>
                       </label>
                     </div>
@@ -767,7 +775,7 @@ export default function Dashboard() {
                   value={scopusKey} 
                   onChange={(e) => setScopusKey(e.target.value)}
                   className="mb-4"
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '12px', borderRadius: '8px' }}
+                  style={{ width: '100%', background: '#ffffff', border: '1px solid rgba(15,23,42,0.16)', color: 'var(--text-primary)', padding: '12px', borderRadius: '8px' }}
                 />
                 <div className="flex gap-4">
                   <button className="btn-primary flex-1" onClick={() => handleUpload(null, pendingFile!, scopusKey)}>
@@ -808,16 +816,14 @@ export default function Dashboard() {
           gap: 12px;
         }
 
-        .logo-icon {
+        .logo-image {
           width: 40px;
           height: 40px;
-          background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+          object-fit: contain;
           border-radius: var(--radius-sm);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          font-size: 1.2rem;
+          border: 1px solid var(--border);
+          background: #ffffff;
+          padding: 4px;
         }
 
         .logo h1 {
@@ -860,7 +866,7 @@ export default function Dashboard() {
           width: 100%;
           background: var(--glass);
           border: 1px solid var(--border);
-          color: white;
+          color: var(--text-primary);
           padding: 10px 12px;
           border-radius: var(--radius-sm);
           transition: all 0.2s;
@@ -1001,9 +1007,9 @@ export default function Dashboard() {
         }
 
         .alert.error {
-          background: rgba(239, 68, 68, 0.1);
+          background: rgba(239, 68, 68, 0.08);
           border: 1px solid rgba(239, 68, 68, 0.2);
-          color: #fca5a5;
+          color: #b91c1c;
         }
 
         .hero-section {
@@ -1040,16 +1046,16 @@ export default function Dashboard() {
         .form-row input, .form-row select { width: 120px; }
 
         .terminal-window {
-          background: #000;
+          background: #f8fafc;
           border-radius: var(--radius-lg);
           border: 1px solid var(--border);
           overflow: hidden;
           font-family: var(--font-mono);
-          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
         }
 
         .terminal-header {
-          background: #1a1b1e;
+          background: #e2e8f0;
           padding: 12px 16px;
           display: flex;
           align-items: center;
@@ -1062,7 +1068,7 @@ export default function Dashboard() {
         .dot:nth-child(2) { background: #ffbd2e; }
         .dot:nth-child(3) { background: #27c93f; }
 
-        .terminal-title { font-size: 0.75rem; color: #888; letter-spacing: 0.05em; }
+        .terminal-title { font-size: 0.75rem; color: #475569; letter-spacing: 0.05em; }
 
         .terminal-body {
           padding: 20px;
@@ -1077,8 +1083,8 @@ export default function Dashboard() {
           margin-bottom: 4px;
         }
 
-        .ln { color: #444; min-width: 30px; text-align: right; user-select: none; }
-        .content { color: #f0f0f0; white-space: pre-wrap; }
+        .ln { color: #64748b; min-width: 30px; text-align: right; user-select: none; }
+        .content { color: #0f172a; white-space: pre-wrap; }
 
         .metrics-summary {
           display: grid;
@@ -1099,12 +1105,12 @@ export default function Dashboard() {
         }
 
         .rules-display {
-          background: #050505;
+          background: #f8fafc;
           padding: 20px;
           border-radius: var(--radius-sm);
           font-family: var(--font-mono);
           font-size: 0.85rem;
-          color: var(--success);
+          color: #065f46;
           overflow-x: auto;
           white-space: pre-wrap;
           border: 1px solid var(--border);
@@ -1122,9 +1128,10 @@ export default function Dashboard() {
 
         .chart-wrapper {
           width: 100%;
-          background: rgba(0,0,0,0.2);
+          background: #f8fafc;
           padding: 20px;
           border-radius: var(--radius-md);
+          border: 1px solid var(--border);
         }
 
         .chart-labels {
@@ -1148,7 +1155,7 @@ export default function Dashboard() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0,0,0,0.8);
+          background: rgba(15, 23, 42, 0.45);
           backdrop-filter: blur(4px);
           display: flex;
           align-items: center;
@@ -1166,9 +1173,9 @@ export default function Dashboard() {
 
         .progress-bar-bg {
           height: 12px;
-          background: rgba(255,255,255,0.05);
+          background: rgba(148, 163, 184, 0.2);
           border-radius: 6px;
-          border: 1px solid rgba(255,255,255,0.1);
+          border: 1px solid rgba(15,23,42,0.12);
           overflow: hidden;
         }
 
