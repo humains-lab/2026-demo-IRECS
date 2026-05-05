@@ -41,3 +41,5 @@ This repository includes the following directories:
 - [code](https://github.com/jrromero/irecs/tree/main/code): Source code of IRECS, developed in Python. A requirements.txt file is included to install required packages. Assets are compressed as ZIP files due to the size limit.
 - [data](https://github.com/jrromero/irecs/tree/main/datasets): The datasets used for experimentation (compressed as ZIP files due to the size limit).
 - [results](https://github.com/jrromero/irecs/tree/main/results): Detailed results of classification performance. The folder includes a spreadsheet with the experimental results by RQ, files with the best rules found by IRECS for each dataset (RQ3) and statistical tests (RQ4).
+- [uploads]: Folder used to cache uploaded datasets in the web tool.
+- [web-tool] Source code for UI web-based tool designed to connect with IRECS core. It uses Next.js as front-end and FastAPI in Python as back-end. Please, check DEPLOYMENT.md(https://github.com/humains-lab/2026-demo-IRECS/blob/main/DEPLOYMENT.md) for further details.
