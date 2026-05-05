@@ -1,3 +1,6 @@
+# 2026-demo-IRECS
+Functional demonstration of the automatic selection of candidate studies in systematic literature reviews using evolutionary computation.
+
 # Automatic selection of primary studies in systematic reviews with evolutionary rule-based classification
 _Supplementary material_ (September, 2025)
 
